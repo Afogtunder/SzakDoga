@@ -1,0 +1,403 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none;
+}
+
+html, body {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background: #090a0f;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+/* FELSŐ SÁV (HEADER) */
+#top-bar {
+    width: 100%;
+    height: 65px;
+    background: linear-gradient(180deg, rgba(22, 14, 14, 0.98) 0%, rgba(10, 6, 6, 0.95) 100%);
+    border-bottom: 3px solid #ff5500;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 140, 70, 0.4);
+    display: flex;
+    justify-content: center;
+    gap: 35px;
+    align-items: center;
+    z-index: 10;
+    padding: 0 20px;
+}
+
+.stat-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, rgba(40, 22, 16, 0.85) 0%, rgba(20, 10, 8, 0.9) 100%);
+    border: 1.5px solid rgba(255, 110, 30, 0.35);
+    padding: 8px 18px;
+    border-radius: 8px;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7), 0 4px 10px rgba(0, 0, 0, 0.5);
+    transition: all 0.25s ease;
+}
+
+.stat-box::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    width: 6px;
+    height: 6px;
+    border-top: 2px solid #ffaa4d;
+    border-left: 2px solid #ffaa4d;
+}
+
+.stat-box::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 6px;
+    height: 6px;
+    border-bottom: 2px solid #ffaa4d;
+    border-right: 2px solid #ffaa4d;
+}
+
+.stat-box:hover {
+    border-color: rgba(255, 180, 50, 0.8);
+    transform: translateY(-2px);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7), 0 6px 15px rgba(255, 85, 0, 0.25);
+}
+
+.stat-box .label {
+    font-size: 0.75rem;
+    color: #d4a373;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.stat-box .value {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+.stat-box .sub-value {
+    font-size: 0.75rem;
+    color: #ffd166;
+    font-weight: bold;
+    background: rgba(255, 140, 0, 0.2);
+    padding: 2px 6px;
+    border-radius: 5px;
+    border: 1px solid rgba(255, 170, 77, 0.4);
+}
+
+#game-view {
+    position: relative;
+    flex: 1;
+    width: 100%;
+    height: calc(100vh - 65px);
+    background: url('map.png') no-repeat center center;
+    background-size: cover;
+    overflow: hidden;
+    perspective: 1200px;
+}
+
+#board.grid-2x6 {
+    position: absolute;
+    top: 27%;
+    left: 50%;
+    transform: translateX(-50%) rotateX(25deg) scale(1.05);
+    transform-origin: center bottom;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2vh;
+}
+
+.board-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.8vw;
+}
+
+.cell {
+    width: 9vw;
+    max-width: 145px;
+    min-width: 100px;
+    height: 15vw;
+    max-height: 195px;
+    min-height: 130px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    background: rgba(15, 10, 15, 0.85);
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    transition: transform 0.15s ease, border-color 0.15s;
+}
+
+.cell:hover {
+    transform: translateZ(20px) scale(1.06);
+    border-color: #ffaa00;
+    z-index: 20;
+}
+
+.enemy-row .cell { border-color: rgba(255, 68, 68, 0.6); }
+.player-row .cell { border-color: rgba(255, 255, 255, 0.5); }
+
+.character-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform-origin: center center;
+}
+
+.character.attack-mode { transform: rotate(0deg); transition: transform 0.3s ease; }
+.character.defense-mode { transform: rotate(90deg); transition: transform 0.3s ease; }
+
+.cell img.character {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.unit-dmg-badge {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1.5px solid #ff7700;
+    color: #ffaa4d;
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    z-index: 6;
+}
+
+.unit-hp-bar {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 60px;
+    height: 13px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+    border-radius: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5;
+}
+
+.unit-hp-text { font-size: 0.8rem; font-weight: bold; color: #fff; }
+
+/* ALSÓ HUD ÉS SÁV (FOOTER) */
+#bottom-hud {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 100;
+    pointer-events: none;
+}
+
+#toggle-shop-btn {
+    background: #1c1313;
+    color: #ffaa00;
+    border: 2px solid #ff7700;
+    border-bottom: none;
+    padding: 6px 30px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    font-weight: bold;
+    font-size: 0.85rem;
+    cursor: pointer;
+    pointer-events: auto;
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.8);
+}
+
+#toggle-shop-btn:hover { background: #2e1c1c; }
+
+#hud-drawer {
+    width: 100%;
+    background: rgba(14, 10, 10, 0.98);
+    backdrop-filter: blur(8px);
+    border-top: 2px solid #ff550044;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    pointer-events: auto;
+    transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s;
+    max-height: 230px;
+    overflow: hidden;
+}
+
+#hud-drawer.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+    border: none;
+    pointer-events: none;
+}
+
+.hud-label {
+    font-size: 0.75rem;
+    color: #ba8080;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 6px;
+    width: 100%;
+}
+
+.hud-side {
+    width: 48%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.action-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+    min-width: 75px;
+}
+
+.btn-text {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #ffd166;
+    line-height: 1.3;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.circle-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.4rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.15s;
+}
+
+.circle-btn:hover { transform: scale(1.06); }
+
+.brown-btn { background: #a0522d; border: 3px solid #d2691e; }
+.blue-btn { background: #2980b9; border: 3px solid #3498db; }
+
+#bench-area {
+    flex: 1;
+}
+
+/* 2X5 KISPAD - Rugalmasan skálázódó méret (1366px-es monitortól felfelé biztonságos) */
+#bench.grid-2x5 {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(75px, 95px));
+    grid-template-rows: repeat(2, minmax(65px, 82px));
+    gap: 5px;
+    width: auto;
+    justify-content: center;
+}
+
+.bench-slot {
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 5, 5, 0.85);
+    border: 1.5px solid rgba(255, 120, 50, 0.6);
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.15s ease, border-color 0.15s;
+}
+
+.bench-slot:hover {
+    transform: translateY(-2px);
+    border-color: #ffaa00;
+}
+
+.bench-slot img.character {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+/* 5 BOLT KÁRTYA (Jobb oldal) */
+#shop-area { flex: 1; }
+
+#shop-cards {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.shop-slot {
+    flex: 1;
+    min-width: 65px;
+    height: 170px;
+    background: rgba(10, 5, 5, 0.85);
+    border: 2px solid rgba(41, 128, 185, 0.6);
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.15s ease, border-color 0.15s;
+}
+
+.shop-slot:hover {
+    transform: translateY(-3px);
+    border-color: #3498db;
+}
+
+.shop-card-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px;
+}
+
+.shop-slot img.character {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.shop-card-price {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #ffaa4d;
+}

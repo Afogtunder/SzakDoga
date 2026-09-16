@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardTactics - Auto-Battler Arena</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+
+    <!-- FELSŐ HUD BAR -->
+    <header id="top-bar">
+        <div class="stat-box">
+            <span class="label">Életek</span>
+            <span id="lives" class="value">❤️❤️❤️</span>
+        </div>
+        <div class="stat-box">
+            <span class="label">Fázis</span>
+            <span id="round-info" class="value">Round 1 / 15</span>
+        </div>
+        <div class="stat-box">
+            <span class="label">Arany</span>
+            <span id="gold-count" class="value">10 💰</span>
+        </div>
+        <div class="stat-box">
+            <span class="label">Szint</span>
+            <span id="player-level" class="value">Lvl 1</span> 
+            <span id="xp-display" class="sub-value">(0/2 XP)</span>
+        </div>
+        <div class="stat-box">
+            <span class="label">Idő</span>
+            <span id="timer" class="value">30s</span>
+        </div>
+    </header>
+
+    <!-- FŐ PÁLYA -->
+    <main id="game-view">
+        <div id="board" class="grid-2x6">
+            <div class="board-row enemy-row">
+                <div class="cell" data-row="0" data-col="0"></div>
+                <div class="cell" data-row="0" data-col="1"></div>
+                <div class="cell" data-row="0" data-col="2"></div>
+                <div class="cell" data-row="0" data-col="3"></div>
+                <div class="cell" data-row="0" data-col="4"></div>
+                <div class="cell" data-row="0" data-col="5"></div>
+            </div>
+            <div class="board-row player-row">
+                <div class="cell" data-row="1" data-col="0">
+                    <div class="character-wrapper">
+                        <img src="1cost-zero.png" class="character attack-mode" alt="Yordle">
+                        <div class="unit-dmg-badge">⚔️ 1</div>
+                        <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
+                    </div>
+                </div>
+                <div class="cell" data-row="1" data-col="1"></div>
+                <div class="cell" data-row="1" data-col="2"></div>
+                <div class="cell" data-row="1" data-col="3"></div>
+                <div class="cell" data-row="1" data-col="4"></div>
+                <div class="cell" data-row="1" data-col="5"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ALSÓ HUD ÉS SÁV (FOOTER) -->
+    <footer id="bottom-hud">
+        <button id="toggle-shop-btn">▼ BOLT & KISPAD ELREJTÉSE ▼</button>
+
+        <div id="hud-drawer">
+            <!-- BAL OLDAL: Újra pörgetés gomb + 2x5 Kispad -->
+            <div class="hud-side left-side">
+                <div class="action-container">
+                    <button id="btn-reroll" class="circle-btn brown-btn">🔄</button>
+                    <span class="btn-text">Újra pörgetés<br><b>(2 💰)</b></span>
+                </div>
+
+                <div id="bench-area">
+                    <div class="hud-label">Kispad</div>
+                    <div id="bench" class="grid-2x5">
+                        <div class="bench-slot" data-slot="0">
+                            <div class="character-wrapper">
+                                <img src="1cost-zero.png" class="character attack-mode" draggable="true" alt="Yordle">
+                                <div class="unit-dmg-badge">⚔️ 1</div>
+                                <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
+                            </div>
+                        </div>
+                        <div class="bench-slot" data-slot="1"></div>
+                        <div class="bench-slot" data-slot="2"></div>
+                        <div class="bench-slot" data-slot="3"></div>
+                        <div class="bench-slot" data-slot="4"></div>
+                        <div class="bench-slot" data-slot="5"></div>
+                        <div class="bench-slot" data-slot="6"></div>
+                        <div class="bench-slot" data-slot="7"></div>
+                        <div class="bench-slot" data-slot="8"></div>
+                        <div class="bench-slot" data-slot="9"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- JOBB OLDAL: 5 Hatalmas Bolt Kártya + XP vásárlás gomb -->
+            <div class="hud-side right-side">
+                <div id="shop-area">
+                    <div class="hud-label">Bolt</div>
+                    <div id="shop-cards">
+                        <div class="shop-slot" data-shop-id="0">
+                            <div class="shop-card-content">
+                                <div class="character-wrapper">
+                                    <img src="1cost-zero.png" class="character attack-mode" alt="Yordle">
+                                    <div class="unit-dmg-badge">⚔️ 1</div>
+                                    <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
+                                </div>
+                                <span class="shop-card-price">1 💰</span>
+                            </div>
+                        </div>
+                        <div class="shop-slot" data-shop-id="1"></div>
+                        <div class="shop-slot" data-shop-id="2"></div>
+                        <div class="shop-slot" data-shop-id="3"></div>
+                        <div class="shop-slot" data-shop-id="4"></div>
+                    </div>
+                </div>
+
+                <div class="action-container">
+                    <button id="btn-buy-xp" class="circle-btn blue-btn">⭐</button>
+                    <span class="btn-text">XP vásárlás<br><b>(4 💰)</b></span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="game.js"></script>
+</body>
+</html>
