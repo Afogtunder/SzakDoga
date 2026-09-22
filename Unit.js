@@ -1,5 +1,5 @@
 export class Unit {
-    constructor(id, name, cost, hp, damage, image, tier = 1) {
+    constructor(id, name, cost, hp, damage, image, tier = 1, traits = []) {
         this.id = id;
         this.name = name;
         this.cost = cost;       // 1-5 arany közötti költség
@@ -8,6 +8,7 @@ export class Unit {
         this.image = image;
         this.tier = tier;       // 1, 2, vagy 3 csillag
         this.isFrozen = false;
+        this.traits = traits; // további skillek MAJD
     }
 
     // Ha 3 azonos összevonásra kerül, ez a metódus lefut
