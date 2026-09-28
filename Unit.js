@@ -1,5 +1,5 @@
 export class Unit {
-    constructor(id, name, cost, hp, damage, image, tier = 1, traits = []) {
+    constructor(id, name, cost, hp, damage, image, tier = 1, traits = [],hasTaunt = false) {
         this.id = id;
         this.name = name;
         this.cost = cost;       // 1-5 arany közötti költség
@@ -9,6 +9,7 @@ export class Unit {
         this.tier = tier;       // 1, 2, vagy 3 csillag
         this.isFrozen = false;
         this.traits = traits; // további skillek MAJD
+        this.hasTaunt = hasTaunt; // Ha true, őt kell először támadni
     }
 
     // Ha 3 azonos összevonásra kerül, ez a metódus lefut
