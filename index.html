@@ -48,41 +48,41 @@
             <div class="board-row player-row">
                 <div class="cell" data-row="1" data-col="0">
                     <div class="character-wrapper">
-                        <img src="1cost-zero.png" class="character attack-mode" alt="Yordle">
+                        <img src="images/monster1/1cost-five.png" class="character attack-mode" alt="Yordle">
                         <div class="unit-dmg-badge">⚔️ 1</div>
                         <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
                     </div>
                 </div>
                 <div class="cell" data-row="1" data-col="1">
-                       <div class="character-wrapper">
+                    <div class="character-wrapper">
                         <img src="2cost-two.PNG" class="character attack-mode" alt="Yordle">
                         <div class="unit-dmg-badge">⚔️ 1</div>
                         <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
                     </div>
                 </div>
                 <div class="cell" data-row="1" data-col="2">
-                       <div class="character-wrapper">
+                    <div class="character-wrapper">
                         <img src="2cost-zero.png" class="character attack-mode" alt="Yordle">
                         <div class="unit-dmg-badge">⚔️ 1</div>
                         <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
                     </div>
                 </div>
                 <div class="cell" data-row="1" data-col="3">
-                       <div class="character-wrapper">
+                    <div class="character-wrapper">
                         <img src="3cost-zero.png" class="character attack-mode" alt="Yordle">
                         <div class="unit-dmg-badge">⚔️ 1</div>
                         <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
                     </div>
                 </div>
                 <div class="cell" data-row="1" data-col="4">
-                       <div class="character-wrapper">
+                    <div class="character-wrapper">
                         <img src="4cost-zero.png" class="character attack-mode" alt="Yordle">
                         <div class="unit-dmg-badge">⚔️ 1</div>
                         <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
                     </div>
                 </div>
                 <div class="cell" data-row="1" data-col="5">
-                       <div class="character-wrapper">
+                    <div class="character-wrapper">
                         <img src="5cost-zero.png" class="character attack-mode" alt="Yordle">
                         <div class="unit-dmg-badge">⚔️ 1</div>
                         <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
@@ -94,7 +94,10 @@
 
     <!-- ALSÓ HUD ÉS SÁV (FOOTER) -->
     <footer id="bottom-hud">
-        <button id="toggle-shop-btn">▼ BOLT & KISPAD ELREJTÉSE ▼</button>
+        <div class="footer-buttons-container">
+            <button id="toggle-shop-btn">▼ BOLT & KISPAD ELREJTÉSE ▼</button>
+            <button id="toggle-spells-btn">▼ SPELL INVENTORY ELREJTÉSE ▼</button>
+        </div>
 
         <div id="hud-drawer">
             <!-- BAL OLDAL: Újra pörgetés gomb + 2x5 Kispad -->
@@ -127,10 +130,10 @@
                 </div>
             </div>
 
-            <!-- JOBB OLDAL: 5 Hatalmas Bolt Kártya + XP vásárlás gomb -->
+            <!-- JOBB OLDAL: 6 Hatalmas Bolt Kártya + XP vásárlás gomb -->
             <div class="hud-side right-side">
                 <div id="shop-area">
-                    <div class="hud-label">Bolt</div>
+                    <div class="hud-label">Bolt (6 Slot)</div>
                     <div id="shop-cards">
                         <div class="shop-slot" data-shop-id="0">
                             <div class="shop-card-content">
@@ -146,6 +149,7 @@
                         <div class="shop-slot" data-shop-id="2"></div>
                         <div class="shop-slot" data-shop-id="3"></div>
                         <div class="shop-slot" data-shop-id="4"></div>
+                        <div class="shop-slot" data-shop-id="5"></div>
                     </div>
                 </div>
 
@@ -153,6 +157,17 @@
                     <button id="btn-buy-xp" class="circle-btn blue-btn">⭐</button>
                     <span class="btn-text">XP vásárlás<br><b>(4 💰)</b></span>
                 </div>
+            </div>
+        </div>
+
+        <!-- KÜLÖN LENYÍLÓ SZEKCIÓ A SPELL-EKNEK -->
+        <div id="spell-drawer" class="spell-drawer">
+            <div class="hud-label">Varázslat Inventory (Spells)</div>
+            <div id="spell-inventory-container" class="spell-grid">
+                <div class="spell-slot" data-spell-id="0"></div>
+                <div class="spell-slot" data-spell-id="1"></div>
+                <div class="spell-slot" data-spell-id="2"></div>
+                <div class="spell-slot" data-spell-id="3"></div>
             </div>
         </div>
     </footer>
