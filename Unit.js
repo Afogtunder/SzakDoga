@@ -28,4 +28,21 @@ export class Unit {
         this.hp -= amount;
         if (this.hp < 0) this.hp = 0;
     }
+
+    applyTaunt() {
+        if (this.isTaunt) return; // Ha már tauntos, ne alkalmazzuk újra
+
+        this.isTaunt = true;
+
+        // Kiszámoljuk a DMG 20%-át és egészre kerekítjük
+        let amount = Math.round(this.damage * 0.20);
+
+        // A HP-t növeljük a kerekített értékkel
+        this.hp += amount;
+
+        // A DMG-t csökkentjük ugyanezzel az értékkel (biztosítva, hogy min. 1 maradjon)
+        this.damage = Math.max(1, this.damage - amount);
+
+        console.log(`🛡️ ${this.name} Tauntot kapott! (+${amount} HP, -${amount} DMG) -> Új HP: ${this.hp}, Új DMG: ${this.damage}`);
+    }
 }

@@ -2,20 +2,19 @@ export class Player {
     constructor(name = "Játékos") {
         this.name = name;
         this.hp = 3;            
-        this.gold = 10;         
-        this.level = 1;         
-        this.xp = 0;            // Mindig 0-ról indul az aktuális szinten
+        this.gold = 10;        
+        this.level = 1;        
+        this.xp = 0;            
         
-        // A pontos XP-táblázat a megadott értékek alapján (max 9. szint)
         this.xpTable = {
-            1: 2,   // 1 -> 2 szinthez
-            2: 6,   // 2 -> 3 szinthez
-            3: 10,  // 3 -> 4 szinthez
-            4: 20,  // 4 -> 5 szinthez
-            5: 36,  // 5 -> 6 szinthez
-            6: 60,  // 6 -> 7 szinthez
-            7: 68,  // 7 -> 8 szinthez
-            8: 68   // 8 -> 9 szinthez (Max szint elérése)
+            1: 2,   
+            2: 6,   
+            3: 10,  
+            4: 20,  
+            5: 36,  
+            6: 60,  
+            7: 68,  
+            8: 68   
         };
         
         this.maxExp = this.xpTable[this.level] || 2;
@@ -38,9 +37,8 @@ export class Player {
         return false;
     }
 
-    // XP növelése (pl. vásárláskor vagy kör végén)
     gainXp(amount) {
-        if (this.level >= 9) return; // 9 a max szint
+        if (this.level >= 9) return;
 
         this.xp += amount;
         console.log(`📈 XP növekedés: ${this.xp} / ${this.maxExp} (Szint: ${this.level})`);
@@ -50,17 +48,16 @@ export class Player {
         }
     }
 
-    // Szintlépés: XP nullázódik, szint nő, új cél beállítása
     levelUp() {
         if (this.level >= 9) return;
 
         this.level++;
-        this.xp = 0; // Visszaugrik 0-ra, ahogy megbeszéltük!
+        this.xp = 0; 
         
         if (this.xpTable[this.level]) {
             this.maxExp = this.xpTable[this.level];
         } else {
-            this.maxExp = 9999; // 9. szint után nincs tovább
+            this.maxExp = 0; 
             console.log("🏆 Elérted a maximális (9.) szintet!");
         }
         
@@ -68,11 +65,38 @@ export class Player {
     }
 
     addItemToInventory(item) {
-        this.itemInventory.push(item);
-        return true;
+        let emptyIndex = this.itemInventory.indexOf(null);
+        
+        if (emptyIndex !== -1) {
+            this.itemInventory[emptyIndex] = item;
+            return true;
+        } else if (this.itemInventory.length < 6) { 
+            this.itemInventory.push(item);
+            return true;
+        }
+        
+        console.log("A spell raktár tele van!");
+        return false;
     }
 
-   takeDamage(amount = 1) {
+    useItemFromInventory(index) {
+        if (index >= 0 && index < this.itemInventory.length) {
+            const usedItem = this.itemInventory[index];
+            
+            if (usedItem === null) {
+                console.log("Ez a hely már üres!");
+                return false;
+            }
+
+            this.itemInventory[index] = null; 
+            console.log(`✨ Felhasznált tárgy/spell a(z) ${index}. slotról:`, usedItem);
+            return true;
+        }
+        console.log("Nincs ilyen indexű hely a raktárban!");
+        return false;
+    }
+
+    takeDamage(amount = 1) {
         if (this.hp > 0) {
             this.hp -= amount;
             if (this.hp < 0) {
@@ -83,8 +107,7 @@ export class Player {
 
         if (this.hp === 0) {
             console.log(`💀 JÁTÉK VÉGE! ${this.name} kiesett a játékból!`);
-            // Itt majd meghívhatjuk a játékvége (game over) eseményt is
-            return true; // Jelzi, hogy a játékos meghalt
+            return true; 
         }
         return false;
     }
@@ -104,6 +127,42 @@ export class Player {
             return true;
         }
         console.log("A harctér tele van! (Max 6 hely)");
+        return false;
+    }
+
+    moveUnitBenchToBoard(unit) {
+        let benchIndex = this.bench.indexOf(unit);
+
+        if (benchIndex !== -1) {
+            if (this.board.length < 6) {
+                this.bench.splice(benchIndex, 1);
+                this.board.push(unit);
+                console.log(`⚔️ ${unit.name} átkerült a padról a harctérre.`);
+                return true;
+            } else {
+                console.log("A harctér tele van! (Max 6 hely)");
+                return false;
+            }
+        }
+        console.log("Ez az egység nincs rajta a kispadon!");
+        return false;
+    }
+
+    moveUnitBoardToBench(unit) {
+        let boardIndex = this.board.indexOf(unit);
+
+        if (boardIndex !== -1) {
+            if (this.bench.length < 10) {
+                this.board.splice(boardIndex, 1);
+                this.bench.push(unit);
+                console.log(`🛡️ ${unit.name} visszakerült a harctérről a kispadra.`);
+                return true;
+            } else {
+                console.log("A kispad tele van! (Max 10 hely)");
+                return false;
+            }
+        }
+        console.log("Ez az egység nincs rajta a harctéren!");
         return false;
     }
 }

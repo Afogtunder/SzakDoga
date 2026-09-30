@@ -5,7 +5,7 @@ export class Spell {
         this.cost = cost;              
         this.description = description; 
         this.type = type;               // A kártya típusa (címkéje)
-        this.value = value;            
+        this.value = value;            // A hatás értéke (pl. sebzés, buff mértéke)
     }
 
     // Az isEnemy eldönti, hogy saját vagy ellenfél lapot célozz meg
@@ -14,19 +14,29 @@ export class Spell {
         // --- HA AZ ELLENFÉL LAPJÁRA DOBOD ---
         if (isEnemy) {
             switch (this.type) {
+                case "deal_damage": // Általános direkt sebzés (pl. Tűzlabda, Villámcsapás)
+                    if (typeof target.takeDamage === 'function') {
+                        target.takeDamage(this.value);
+                    } else {
+                        target.hp -= this.value;
+                        if (target.hp < 0) target.hp = 0;
+                    }
+                    console.log(`🔥 [ELLENFÉL] ${target.name || target.id} kapott ${this.value} sebzést tőle: ${this.name}!`);
+                    break;
+
                 case "freeze":
                     target.isFrozen = true;
-                    console.log(`❄️ [ELLENFÉL] ${target.name} meg lett fagyasztva!`);
+                    console.log(`❄️ [ELLENFÉL] ${target.name || target.id} meg lett fagyasztva!`);
                     break;
 
                 case "nerf_enemy_hp_1":
                     target.hp = 1;
-                    console.log(`📉 [ELLENFÉL] ${target.name} HP-ja le lett csökkentve 1-re!`);
+                    console.log(`📉 [ELLENFÉL] ${target.name || target.id} HP-ja le lett csökkentve 1-re!`);
                     break;
 
                 case "nerf_enemy_dmg_1":
                     target.damage = 1;
-                    console.log(`📉 [ELLENFÉL] ${target.name} DMG-je le lett csökkentve 1-re!`);
+                    console.log(`📉 [ELLENFÉL] ${target.name || target.id} DMG-je le lett csökkentve 1-re!`);
                     break;
 
                 default:

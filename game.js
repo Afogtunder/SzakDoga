@@ -26,35 +26,42 @@ $(document).ready(function() {
 
     // ==========================================
     // ZENELEJÁTSZÓ / PLAYLIST LOGIKA
-    // ==========================================
-    const playlist = [
+   const playlist = [
         'music/track1.mp3',
         'music/track2.mp3',
         'music/track3.mp3'
     ];
 
-    let currentTrackIndex = 0;
+    let playIndex = 0;
+    const maxPlays = playlist.length * 33; // 3 zene * 33 kör = 99 lejátszás összesen
+    
     const bgAudio = new Audio();
-    bgAudio.volume = 0.3; // Hangerő (0.0 és 1.0 között, pl. 30%)
+    bgAudio.volume = 0.9;
 
-    function playCurrentTrack() {
-        bgAudio.src = playlist[currentTrackIndex];
+    function playMusic() {
+        if (playIndex >= maxPlays) {
+            console.log("🎵 Lejárt a lejátszási limit.");
+            return;
+        }
+
+        // Kiválasztjuk a zenét a soron következő index alapján (0, 1, 2)
+        let currentTrack = playlist[playIndex % playlist.length];
+
+        bgAudio.src = currentTrack;
         bgAudio.play().then(() => {
-            console.log(`🎵 Most szól: ${playlist[currentTrackIndex]}`);
+            console.log(`🎵 Lejátszás: ${playIndex + 1} / ${maxPlays} | Fájl: ${currentTrack}`);
         }).catch(error => {
-            console.log("A böngésző blokkolta az autoplayt, kattintásra indul.");
+            console.log("A böngésző blokkolta az autoplayt.");
         });
     }
 
-    // Amikor egy zene véget ér, lépjünk a következőre (végtelenített körforgás)
     bgAudio.addEventListener('ended', function() {
-        currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-        playCurrentTrack();
+        playIndex++; // Lépünk a következőre
+        playMusic();
     });
 
-    // Mivel a böngészők tiltják az automatikus zeneindítást kattintás nélkül,
-    // az első bármilyen kattintásra elindítjuk a zenelejátszót:
     $(document).one('click', function() {
-        playCurrentTrack();
+        playIndex = 0;
+        playMusic();
     });
 });

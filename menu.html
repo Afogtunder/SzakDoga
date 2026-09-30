@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardTactics - Főmenü</title>
+    <link rel="stylesheet" href="menu.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body class="bg-1">
+
+    <div id="main-menu" class="menu-screen">
+        <div class="menu-left-container">
+            <div class="game-title-wrapper">
+                <span class="title-sub">AUTO-BATTLER ARENA</span>
+                <h1 class="game-title">CARD<span class="highlight">TACTICS</span></h1>
+            </div>
+            
+            <div class="menu-nav-links">
+                <button id="btn-start-game" class="nav-item">
+                    <span class="icon">⚔️</span> JÁTÉK INDÍTÁSA
+                </button>
+                <button id="btn-guide" class="nav-item">
+                    <span class="icon">📖</span> JÁTÉKMENET & ÚTMUTATÓ
+                </button>
+                <button id="btn-lore" class="nav-item">
+                    <span class="icon">📜</span> TÖRTÉNET (LORE)
+                </button>
+                <button id="btn-credits" class="nav-item">
+                    <span class="icon">⭐</span> KÉSZÍTŐ (CREDITS)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. JÁTÉKMENET PANEL -->
+    <div id="guide-panel" class="slide-panel">
+        <div class="panel-content">
+            <button class="close-panel-btn">✕</button>
+            <h2>📖 Játékmenet & Szabályok</h2>
+            <div class="scrollable-text">
+                <h3>1. A Játék Menete & Boss Körök</h3>
+                <p>A játék <b>2 felvonásból (2x10 körből)</b> áll. Minden körben egy előre generált ellenséges hordával csaptok össze. A <b>10. és a 20. kör végén egy-egy veszélyes Boss (Főellenség)</b> vár rád, amik legyőzéséhez komoly taktikára lesz szükséged!</p>
+
+                <h3>2. A Bolt és Gazdaság</h3>
+                <p>A 6 slotos boltban hősöket és Spell kártyákat vásárolhatsz aranyért. Ha nincs elég pénzed, a <b>Fagyasztás (Freeze)</b> gombbal elteheted a kínálatot a következő körre. Újrapörgetni (Reroll) 2 aranyért tudsz.</p>
+
+                <h3>3. Fejlődés (3 Egyforma Egység)</h3>
+                <p>Ha sikerül <b>3 azonos 1-es szintű hőst</b> gyűjtened, azok automatikusan egyesülnek egy sokkal erősebb <b>2-es szintű (★★) hőssé</b>, megnövelt statisztikákkal.</p>
+
+                <h3>4. Taktika: Taunt & Traitek</h3>
+                <ul>
+                    <li><b>Taunt (Provokáció):</b> Elforgatja a lapot, a DMG 20%-át átváltja HP-ba, és magára vonzza az összes ellenséges támadást.</li>
+                    <li><b>3-as Trait Szinergiák:</b> Ha 3 azonos kasztú egység van a tábládon, egyedi bónuszokat kapsz (Kincsvadász: +2 Arany/kör, Bölcs: +1 XP/kör, Harcos: +DMG, Tank: +HP, Átkos: Ellenség DMG csökkentés).</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. LORE PANEL -->
+    <div id="lore-panel" class="slide-panel">
+        <div class="panel-content">
+            <button class="close-panel-btn">✕</button>
+            <h2>📜 CardTactics Legendája</h2>
+            <div class="scrollable-text">
+                <p><b>A Sötétség Ébredése:</b> Évszázadokig béke uralkodott a birodalomban, ám az ősi Káosz elnyelte a vidéket. A legendás harcosok és varázslók lelkét kártyákba zárta egy sötét átok.</p>
+                <p><b>A Taktikus Feladata:</b> Te vagy az utolsó Taktikus, aki képes irányítani a kártyákba zárt hősöket. Feladatod, hogy összegyűjtsd a legerősebb harcosokat, kihasználd a szinergiákat, és áttörd az ellenséges hordák vonalát.</p>
+                <p><b>A Végső Cél:</b> Túlélni a 20 hullámon át tartó megpróbáltatást, és elpusztítani a 10. és 20. körben megjelenő KáoszÚr Boss-okat!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. CREDITS PANEL -->
+    <div id="credits-panel" class="slide-panel">
+        <div class="panel-content credits-content">
+            <button class="close-panel-btn">✕</button>
+            <div class="credits-rolling-container">
+                <div class="credits-logo-small">CARDTACTICS</div>
+                <div class="credit-group">
+                    <h3>FŐFEJLESZTŐ & DESIGN</h3>
+                    <p>Horváth Koppány</p>
+                </div>
+                <div class="credit-group">
+                    <h3>PROGRAMOZÁS & LOGIKA</h3>
+                    <p>HTML5 / CSS3 / JS / jQuery</p>
+                </div>
+                <div class="credit-group final-thanks">
+                    <h2>KÖSZÖNJÜK, HOGY JÁTSZOTTÁL!</h2>
+                    <p>© 2026 Minden jog fenntartva.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="menu.js"></script>
+</body>
+</html>

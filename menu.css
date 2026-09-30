@@ -1,0 +1,246 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #000000;
+    color: #ffffff;
+}
+
+/* Háttérkép finom sötétítéssel */
+body.bg-1 .menu-screen {
+    background: linear-gradient(90deg, rgba(5, 5, 8, 0.92) 0%, rgba(5, 5, 8, 0.4) 60%, transparent 100%), 
+                url('/images/menubackground.PNG') no-repeat center center;
+    background-size: cover;
+}
+
+.menu-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    padding-left: 8vw;
+}
+
+.menu-left-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    z-index: 10;
+}
+
+/* --- FŐCÍM: CARD VÖRÖS, TACTICS SÁRGA --- */
+.game-title-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.title-sub {
+    font-size: 0.8rem;
+    letter-spacing: 5px;
+    color: #ff3344; /* Vörös alfejezet */
+    font-weight: 700;
+    text-transform: uppercase;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.game-title {
+    font-size: 3.8rem;
+    font-weight: 950;
+    letter-spacing: 3px;
+    color: #ffffff;
+    text-shadow: 0 4px 25px rgba(0, 0, 0, 0.9), 0 0 15px rgba(255, 51, 68, 0.2);
+    line-height: 1;
+}
+
+.game-title .highlight {
+    color: #ffaa00; /* A TACTICS marad sárga, ahogy kérted */
+    text-shadow: 0 0 20px rgba(255, 170, 0, 0.6);
+}
+
+/* Menüpontok */
+.menu-nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.nav-item {
+    background: transparent;
+    border: none;
+    color: #b0b0b0;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: left;
+    cursor: pointer;
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    letter-spacing: 1px;
+    transition: all 0.25s ease;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+}
+
+.nav-item .icon {
+    font-size: 1.3rem;
+    transition: transform 0.25s ease;
+}
+
+.nav-item:hover {
+    color: #ff3344; /* Hoverre vörösre vált */
+    transform: translateX(8px);
+}
+
+.nav-item:hover .icon {
+    transform: scale(1.2);
+}
+
+/* Felúszó oldalsávok (Vörös szegéllyel) */
+.slide-panel {
+    position: fixed;
+    top: 0;
+    right: -100vw;
+    width: 50vw;
+    height: 100vh;
+    background: rgba(10, 10, 14, 0.96);
+    backdrop-filter: blur(15px);
+    border-left: 2px solid #ff3344;
+    box-shadow: -15px 0 50px rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    transition: right 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.slide-panel.open {
+    right: 0;
+}
+
+.panel-content {
+    padding: 50px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.panel-content h2 {
+    color: #ff3344;
+    font-size: 2rem;
+    margin-bottom: 25px;
+    border-bottom: 1px solid rgba(255, 51, 68, 0.3);
+    padding-bottom: 15px;
+}
+
+.scrollable-text {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding-right: 15px;
+    color: #cccccc;
+    line-height: 1.6;
+    font-size: 1.05rem;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* --- END CREDITS (STÁBLISTA) --- */
+.credits-content {
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.credits-rolling-container {
+    position: absolute;
+    width: 80%;
+    left: 10%;
+    top: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    animation: rollCredits 18s linear infinite;
+}
+
+.credits-rolling-container:hover {
+    animation-play-state: paused;
+}
+
+.credits-logo-small {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #ff3344;
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(255, 51, 68, 0.4);
+}
+
+.credit-group h3 {
+    font-size: 0.9rem;
+    letter-spacing: 3px;
+    color: #888888;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.credit-group p {
+    font-size: 1.2rem;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.credit-group.final-thanks h2 {
+    color: #ff3344;
+    font-size: 1.5rem;
+    border: none;
+    margin-bottom: 5px;
+    text-shadow: 0 0 10px rgba(255, 51, 68, 0.4);
+}
+
+@keyframes rollCredits {
+    0% {
+        top: 100%;
+    }
+    100% {
+        top: -120%;
+    }
+}
+
+/* Bezárás gomb (Vörös szegéllyel) */
+.close-panel-btn {
+    position: absolute;
+    top: 30px;
+    right: 35px;
+    background: transparent;
+    border: 2px solid #ff3344;
+    color: #ff3344;
+    font-size: 1.2rem;
+    font-weight: bold;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.close-panel-btn:hover {
+    background: #ff3344;
+    color: #000;
+    box-shadow: 0 0 15px rgba(255, 51, 68, 0.8);
+}
