@@ -16,6 +16,12 @@ html, body {
     flex-direction: column;
 }
 
+/* Az oldalsó panelek szélessége (a tábla ehhez igazodik) */
+:root {
+    --panel-w: 210px;
+    --hud-h: 40px;          /* az alsó sáv magassága (a main.js frissíti) */
+}
+
 /* FELSŐ SÁV (HEADER) */
 #top-bar {
     width: 100%;
@@ -109,8 +115,13 @@ html, body {
 }
 
 #board.grid-2x6 {
+    /* A lapok magassága a szabad helyhez igazodik, így nyitott bolt és kispad
+       mellett is látszik a pálya (a játékos sora nem csúszik az alsó sáv alá). */
+    --cell-h: max(105px, min(15vw, 195px, calc((100vh - 65px - var(--hud-h) - 50px) / 2.15)));
+    --cell-w: calc(var(--cell-h) * 0.6);
+    width: min(calc(100vw - 2 * (var(--panel-w) + 40px)), 1000px);
     position: absolute;
-    top: 27%;
+    top: max(8px, calc((100vh - 65px - var(--hud-h) - (2 * var(--cell-h) + 1.2vh)) / 2));
     left: 50%;
     transform: translateX(-50%) rotateX(25deg) scale(1.05);
     transform-origin: center bottom;
@@ -123,16 +134,16 @@ html, body {
 .board-row {
     display: flex;
     justify-content: center;
+    align-items: center;
+    width: 100%;
     gap: 0.8vw;
 }
 
 .cell {
-    width: 9vw;
-    max-width: 145px;
-    min-width: 100px;
-    height: 15vw;
-    max-height: 195px;
-    min-height: 130px;
+    width: var(--cell-w);
+    height: var(--cell-h);
+    flex: 0 1 auto;         /* szükség esetén összébb húzódik */
+    min-width: 0;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -164,13 +175,12 @@ html, body {
 }
 
 .character.attack-mode { transform: rotate(0deg); transition: transform 0.3s ease; }
-.character.defense-mode { transform: rotate(90deg); transition: transform 0.3s ease; }
 
 .cell img.character {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    border-radius: 6px;
+    object-fit: cover;      /* a kép kitölti a teljes lapot */
+    border-radius: 8px;
 }
 
 .unit-dmg-badge {
@@ -428,6 +438,8 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+    overflow: hidden;
     transition: transform 0.15s ease, border-color 0.15s;
 }
 
@@ -437,25 +449,747 @@ html, body {
 }
 
 .shop-card-content {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px;
+    position: absolute;
+    inset: 0;
 }
 
 .shop-slot img.character {
     width: 100%;
-    height: 140px;
+    height: 100%;
     object-fit: cover;
     border-radius: 4px;
 }
 
+/* Az ár a kártya jobb felső sarkában */
 .shop-card-price {
-    font-size: 0.8rem;
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    padding: 1px 5px;
+    font-size: 0.68rem;
     font-weight: bold;
     color: #ffaa4d;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid #ff7700;
+    border-radius: 4px;
+    z-index: 7;
+}
+
+/* =====================================================
+   ÚJ ELEMEK: SZINERGIA PANEL, EGYSÉG INFÓ, CSATA GOMB,
+   ELADÁS ZÓNA, LAP JELZÉSEK
+   ===================================================== */
+
+/* ----- Trait és cost színek (több helyen használjuk) ----- */
+[data-trait="tank"]     { --trait-color: #4da6ff; }
+[data-trait="warrior"]  { --trait-color: #ff5544; }
+[data-trait="treasure"] { --trait-color: #ffc83d; }
+[data-trait="sage"]     { --trait-color: #b98cff; }
+[data-trait="lucky"]    { --trait-color: #5fdc7a; }
+
+[data-cost="1"] { --cost-color: #9aa3ad; }
+[data-cost="2"] { --cost-color: #4cc26a; }
+[data-cost="3"] { --cost-color: #4da6ff; }
+[data-cost="4"] { --cost-color: #b46bff; }
+[data-cost="5"] { --cost-color: #ffb21f; }
+.enemy-unit     { --cost-color: #ff4444; }
+
+/* ----- Oldalsó panelek közös stílusa ----- */
+#trait-panel,
+#unit-info {
+    background: linear-gradient(135deg, rgba(40, 22, 16, 0.93) 0%, rgba(20, 10, 8, 0.95) 100%);
+    border: 1.5px solid rgba(255, 110, 30, 0.35);
+    border-radius: 8px;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7), 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+
+#trait-panel,
+#side-panel {
+    position: absolute;
+    top: 14px;
+    width: var(--panel-w);
+    z-index: 15;
+}
+
+.panel-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #d4a373;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+/* ----- Szinergia panel (bal oldal) ----- */
+#trait-panel {
+    left: 14px;
+    padding: 10px;
+}
+
+.trait-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    margin-bottom: 6px;
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    opacity: 0.7;
+    cursor: help;
+    transition: opacity 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.trait-row:last-child { margin-bottom: 0; }
+
+.trait-row:hover,
+.trait-row:focus-visible { opacity: 1; }
+
+/* Aktív szinergia: kiemelt keret és fény a trait színében */
+.trait-row.active {
+    opacity: 1;
+    border-color: var(--trait-color);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 100%);
+    box-shadow: 0 0 12px -2px var(--trait-color);
+}
+
+.trait-icon {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.15rem;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    border: 2px solid var(--trait-color);
+}
+
+.trait-info { flex: 1; min-width: 0; }
+
+.trait-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+}
+
+.trait-name {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+.trait-count {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #d4a373;
+}
+
+.trait-row.active .trait-count { color: #ffd166; }
+
+.trait-pips { display: flex; gap: 4px; }
+
+.pip {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+}
+
+.pip.on {
+    background: var(--trait-color);
+    border-color: var(--trait-color);
+    box-shadow: 0 0 6px var(--trait-color);
+}
+
+/* A trait leírása fölé húzáskor jelenik meg a panel mellett */
+.trait-desc {
+    display: none;
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 220px;
+    padding: 9px 11px;
+    font-size: 0.8rem;
+    line-height: 1.35;
+    color: #f2e3d3;
+    background: rgba(14, 10, 10, 0.97);
+    border: 1.5px solid var(--trait-color);
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
+    z-index: 30;
+    pointer-events: none;
+}
+
+.trait-row:hover .trait-desc,
+.trait-row:focus-visible .trait-desc { display: block; }
+
+/* ----- Jobb oldali panel: egység infó, csata gomb, eladás ----- */
+#side-panel {
+    right: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#unit-info { padding: 10px; }
+
+.info-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.info-thumb {
+    flex: none;
+    width: 50px;
+    height: 62px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid var(--cost-color, #4cc26a);
+}
+
+.info-name {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+.info-sub {
+    margin-top: 2px;
+    font-size: 0.75rem;
+    color: #d4a373;
+}
+
+.info-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin: 10px 0 8px;
+}
+
+.info-stat-row {
+    display: grid;
+    grid-template-columns: 46px 28px 1fr;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.info-stat-row span { font-size: 0.78rem; color: #d4a373; font-weight: 700; }
+.info-stat-row b { font-size: 1.05rem; color: #ffffff; }
+.info-stat-row small { font-size: 0.68rem; color: #b99a7a; line-height: 1.2; }
+
+.taunt-btn {
+    width: 100%;
+    padding: 7px 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #ffd166;
+    background: #3a2216;
+    border: 1.5px solid #ff7700;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+}
+
+.taunt-btn:hover { background: #55311d; transform: translateY(-1px); }
+
+/* Bekapcsolt taunt */
+.taunt-btn.active {
+    color: #ffffff;
+    background: linear-gradient(180deg, #a02a1e 0%, #6e1810 100%);
+    border-color: #ff6a5a;
+}
+
+/* A csata indítása gomb: a legfontosabb művelet, ezért kiemelt */
+.battle-btn {
+    width: 100%;
+    padding: 15px 10px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+    background: linear-gradient(180deg, #ff7a1a 0%, #c23c00 100%);
+    border: 2px solid #ffaa00;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(255, 85, 0, 0.45), inset 0 1px 0 rgba(255, 220, 160, 0.5);
+    animation: battle-glow 2.4s ease-in-out infinite;
+    transition: transform 0.15s, filter 0.15s;
+}
+
+.battle-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+.battle-btn:active { transform: translateY(1px); }
+
+.battle-btn:disabled {
+    cursor: not-allowed;
+    filter: grayscale(0.9) brightness(0.6);
+    animation: none;
+    box-shadow: none;
+}
+
+@keyframes battle-glow {
+    0%, 100% { box-shadow: 0 4px 14px rgba(255, 85, 0, 0.45), inset 0 1px 0 rgba(255, 220, 160, 0.5); }
+    50%      { box-shadow: 0 4px 24px rgba(255, 140, 0, 0.8), inset 0 1px 0 rgba(255, 220, 160, 0.5); }
+}
+
+/* Eladás zóna: ide kell húzni a lapot */
+#sell-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 11px 8px;
+    text-align: center;
+    background: rgba(20, 10, 8, 0.75);
+    border: 2px dashed rgba(255, 200, 80, 0.45);
+    border-radius: 8px;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+#sell-zone.drag-over {
+    background: rgba(90, 60, 10, 0.85);
+    border: 2px solid #ffd166;
+}
+
+.sell-title { font-size: 0.95rem; font-weight: 800; color: #ffd166; }
+.sell-hint { font-size: 0.72rem; color: #b99a7a; }
+
+/* ----- Jelzések a lapokon ----- */
+.character-wrapper {
+    border-radius: 6px;
+}
+
+.unit-stars {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    color: #ffd166;
+    text-shadow: 0 1px 3px #000, 0 0 6px rgba(0, 0, 0, 0.9);
+    z-index: 6;
+    pointer-events: none;
+}
+
+.unit-trait-badge {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1.5px solid var(--trait-color, #ffffff);
+    border-radius: 50%;
+    z-index: 6;
+}
+
+.unit-taunt-marker {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 1px 5px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: #8b1a1a;
+    border: 1.5px solid #ff6a5a;
+    border-radius: 4px;
+    z-index: 6;
+}
+
+/* Kisebb jelzések a kispadon és a boltban */
+.bench-slot .unit-stars,
+.shop-slot .unit-stars { font-size: 0.6rem; top: 3px; }
+
+.bench-slot .unit-trait-badge,
+.shop-slot .unit-trait-badge { width: 18px; height: 18px; font-size: 0.6rem; top: 3px; left: 3px; }
+
+.bench-slot .unit-taunt-marker,
+.shop-slot .unit-taunt-marker { font-size: 0.55rem; top: 3px; right: 3px; padding: 0 3px; }
+
+.bench-slot .unit-dmg-badge,
+.shop-slot .unit-dmg-badge { font-size: 0.7rem; bottom: 3px; left: 3px; padding: 1px 4px; }
+
+.bench-slot .unit-hp-bar,
+.shop-slot .unit-hp-bar { width: 40px; height: 11px; bottom: 3px; right: 3px; }
+
+.bench-slot .unit-hp-text,
+.shop-slot .unit-hp-text { font-size: 0.65rem; }
+
+/* ----- Bolt kártyák: név és ár a kép alatt ----- */
+.shop-card-content .character-wrapper {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* A név a kártya alján, a sebzés és HP jelvények fölött */
+.shop-card-name {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 24px;
+    padding: 2px 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #f2e3d3;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 7;
+}
+
+/* A boltban minden hős 1 csillagos, a csillagok helyét az ár veszi át */
+.shop-slot .unit-stars { display: none; }
+
+/* Spell kártya a boltban */
+.spell-effect {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    white-space: nowrap;
+    color: #7ec0ff;
+    background: rgba(0, 0, 0, 0.88);
+    border: 1.5px solid #3498db;
+    border-radius: 4px;
+    z-index: 6;
+}
+
+/* Spell a spell inventoryban */
+.spell-inv-card {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.spell-inv-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.spell-inv-name {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 2px;
+    text-align: center;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #cfe8ff;
+    background: rgba(0, 0, 0, 0.82);
+    border-radius: 0 0 4px 4px;
+}
+
+.spell-cost-badge {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    padding: 1px 4px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #ffaa4d;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid #3498db;
+    border-radius: 4px;
+}
+
+/* ----- Újra pörgetés és fagyasztás gombok (bal oldali oszlop) ----- */
+.action-column {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.action-container.compact { min-width: 70px; gap: 3px; }
+
+.compact .circle-btn { width: 48px; height: 48px; font-size: 1.15rem; }
+.compact .btn-text { font-size: 0.75rem; line-height: 1.2; }
+
+.btn-wrap { position: relative; }
+
+/* Szerencsés trait: ingyen újrapörgetések száma */
+.free-badge {
+    position: absolute;
+    top: -6px;
+    right: -14px;
+    padding: 1px 5px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: #2d7a3a;
+    border: 1.5px solid #5fdc7a;
+    border-radius: 9px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.free-badge.hidden { display: none; }
+
+.ice-btn { background: #1f6f8b; border: 3px solid #5bc0de; }
+
+/* Bekapcsolt fagyasztás */
+.ice-btn.active {
+    background: #5bc0de;
+    box-shadow: 0 0 14px #5bc0de;
+}
+
+/* ----- Karima szabály -----
+   Keretje (karimája) csak az ÜRES helynek és a TAUNT lapnak van.
+   A normál lapokon nincs keret, így a taunt azonnal kitűnik. */
+.cell:not(:empty) {
+    border: 0;
+    background: transparent;
+}
+
+.cell:not(:empty):hover { filter: drop-shadow(0 0 10px #ffaa00); }
+
+.bench-slot:not(:empty),
+.shop-slot:not(:empty),
+.spell-slot:not(:empty) {
+    border-color: transparent;
+    background: transparent;
+}
+
+.bench-slot:not(:empty):hover,
+.shop-slot:not(:empty):hover { border-color: transparent; }
+
+.bench-slot:not(:empty):hover { filter: drop-shadow(0 0 8px #ffaa00); }
+.shop-slot:not(:empty):hover { filter: drop-shadow(0 0 8px #3498db); }
+
+/* ----- Taunt: a teljes lap fekvővé válik, és vastag szürke keretet kap -----
+   A cella alakja fekvőre vált (a mögötte lévő álló lap nem marad meg),
+   a szomszédos lapok kicsúsznak mellőle, és nem lóg rá egyik sem a másikra.
+   Ha sok a taunt, a sor összébb húzza a lapokat, hogy mind elférjen. */
+.cell.taunt {
+    width: var(--cell-h);                   /* egy álló lap magassága */
+    height: auto;
+    aspect-ratio: 5 / 3;                    /* fekvő: az álló lap 3:5 arányának fordítottja */
+    border: 6px solid #8d949c;
+    outline: 2px solid #2a2e33;
+    overflow: hidden;
+    container-type: size;
+}
+
+/* A kép 90 fokkal elfordul (fektetett), és pontosan kitölti a fekvő lapot */
+.cell.taunt img.character {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 100cqh;
+    height: 100cqw;
+    border-radius: 0;
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+/* Kispadon a taunt lap csak keretben látszik (ott nem fordul el a lap) */
+.bench-slot.taunt { border: 4px solid #8d949c; }
+
+/* ----- Játékmotor: üzenetek, húzás, kijelölés, hiányzó képek ----- */
+
+/* Rövid üzenet a képernyő tetején */
+#toast {
+    position: fixed;
+    top: 78px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    padding: 9px 18px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: rgba(20, 10, 8, 0.96);
+    border: 1.5px solid #ff7700;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 300;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+#toast.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Figyelmeztetés, ha az oldal fájlként van megnyitva */
+.server-warning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 16px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: #a02a1e;
+    z-index: 9999;
+}
+
+/* Az a hely, ahová éppen húzod a lapot */
+.drag-over {
+    outline: 2px dashed #ffd166;
+    outline-offset: -2px;
+}
+
+/* Kattintással kijelölt lap */
+.cell.selected,
+.bench-slot.selected { filter: drop-shadow(0 0 10px #ffd166); }
+
+/* Amit nem tudsz megvenni, halványabb */
+.shop-slot.too-expensive { filter: grayscale(0.6) brightness(0.65); }
+
+/* Ha a kép nem található, a lap a nevét mutatja */
+.character-wrapper.no-image,
+.spell-inv-card.no-image {
+    background: linear-gradient(160deg, #2e1e17 0%, #140b08 100%);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+}
+
+.character-wrapper.no-image img.character,
+.spell-inv-card.no-image img { display: none; }
+
+.character-wrapper.no-image::before {
+    content: attr(data-name);
+    padding: 0 8px;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #f2e3d3;
+}
+
+.bench-slot .character-wrapper.no-image::before,
+.shop-slot .character-wrapper.no-image::before { font-size: 0.62rem; padding: 0 3px; }
+
+/* Jobb oldali panel, ha nincs kijelölt lap */
+.info-empty { font-size: 0.82rem; line-height: 1.4; color: #b99a7a; }
+.info-text { display: block; }
+
+/* ----- Csata ----- */
+
+/* A csata alatt a bolt, kispad és spell rész halvány, és nem használható */
+body.in-battle #hud-drawer,
+body.in-battle .spell-drawer {
+    pointer-events: none;
+    opacity: 0.45;
+    filter: grayscale(0.5);
+}
+
+/* Meghalt lap a csatában */
+.cell.dead {
+    opacity: 0.18;
+    filter: grayscale(1);
+    transition: opacity 0.3s, filter 0.3s;
+}
+
+/* Felugró sebzés szám a lap fölött */
+.damage-pop {
+    position: absolute;
+    left: 50%;
+    top: 28%;
+    font-size: 1.7rem;
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 0 2px 6px #000000, 0 0 12px currentColor;
+    pointer-events: none;
+    z-index: 70;
+    animation: pop-rise 0.9s ease-out forwards;
+}
+
+.damage-pop.hit { color: #ff5a4a; }
+.damage-pop.freeze { color: #7fd8ff; }
+
+@keyframes pop-rise {
+    0%   { opacity: 0; transform: translate(-50%, 10px) scale(0.6); }
+    20%  { opacity: 1; transform: translate(-50%, -8px) scale(1.25); }
+    100% { opacity: 0; transform: translate(-50%, -64px) scale(1); }
+}
+
+/* Az eredményablak: győzelem, vereség, játék vége */
+#battle-result {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(5, 3, 3, 0.72);
+    z-index: 400;
+}
+
+#battle-result.hidden { display: none; }
+
+.result-box {
+    min-width: 320px;
+    max-width: 90vw;
+    padding: 28px 36px;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(40, 22, 16, 0.98) 0%, rgba(20, 10, 8, 0.98) 100%);
+    border: 2px solid #ff7700;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 110, 0, 0.3);
+}
+
+.result-title {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #ffd166;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+}
+
+.result-box.lost { border-color: #c0392b; }
+.result-box.lost .result-title { color: #ff6a5a; }
+
+.result-lines {
+    margin: 14px 0 22px;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #f2e3d3;
+}
+
+/* ----- Billentyűzetes használat és mozgáscsökkentés ----- */
+button:focus-visible,
+.trait-row:focus-visible {
+    outline: 2px solid #ffd166;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+}
+
+/* ----- Kisebb képernyők ----- */
+@media (max-width: 1280px) {
+    :root { --panel-w: 178px; }
+
+    .trait-desc { width: 190px; }
+    .info-thumb { display: none; }
+}
+
+@media (max-height: 800px) {
+    .info-stat-row small { display: none; }
 }

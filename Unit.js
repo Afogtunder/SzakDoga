@@ -1,48 +1,173 @@
 export class Unit {
-    constructor(id, name, cost, hp, damage, image, tier = 1, traits = [], hasTaunt = false) {
-        this.id = id;
+
+    // ID index
+    static #nextUid = 1;
+
+    constructor(id, name, cost, hp, damage, image, traits = []) {
+
+        this.uid = Unit.#nextUid;  
+        Unit.#nextUid++;
+        this.id = id;               // level up-hoz kell
         this.name = name;
-        this.cost = cost;       // 1-5 arany közötti költség
-        this.hp = hp;
-        this.damage = damage;
+
+        this.cost = cost;           
         this.image = image;
-        this.tier = tier;       // 1, 2, vagy 3 csillag
-        this.isFrozen = false;
-        this.traits = traits;   // további skillek MAJD
-        this.hasTaunt = hasTaunt; // Ha true, őt kell először támadni
+        this.traits = traits;       
+        this.tier = 1;             
+
+        // alap stat
+        this.cardHp = hp;
+        this.cardDamage = damage;
+
+        // buffolni valo statok
+        this.buffHp = 0;
+        this.buffDamage = 0;
+
+        // traittel valo statok
+        this.traitBonusHp = 0;
+        this.traitBonusDamage = 0;
+
+        this.isTaunt = false;
     }
 
-    // Ha 3 azonos összevonásra kerül, ez a metódus lefut
+    // trait es taunt nelkuli hp + spellek buffal
+    get permanentHp() {
+        return this.cardHp + this.buffHp;
+    }
+
+    // trait es taunt nelkuli dmg + spellek buffal
+    get permanentDamage() {
+        return this.cardDamage + this.buffDamage;
+    }
+
+    // taunt hp-dmg konvertalas
+    get tauntShift() {
+        if (!this.isTaunt) {
+            return 0;
+        }
+
+        let shift = Math.round(this.permanentDamage * 0.20);
+        if (shift < 1) {
+            shift = 1;
+        }
+
+        let maxShift = this.permanentDamage - 1;
+        if (shift > maxShift) {
+            shift = maxShift;
+        }
+        if (shift < 0) {
+            shift = 0;
+        }
+
+        return shift;
+    }
+
+    // minden spell + traut + taunt hp-ra
+    get hp() {
+        let total = this.permanentHp + this.traitBonusHp + this.tauntShift;
+
+        if (total < 1) {
+            total = 1;
+        }
+        return total;
+    }
+
+    // minden spell + traut + taunt dmg-re
+    get damage() {
+        let total = this.permanentDamage + this.traitBonusDamage - this.tauntShift;
+
+        if (total < 1) {
+            total = 1;
+        }
+        return total;
+    }
+
+    // taunt be-ki kapcsolas
+    toggleTaunt() {
+        this.isTaunt = !this.isTaunt;
+        return this.isTaunt;
+    }
+
+
+    // spellek castolasa innentol
+    addPermanentHp(amount) {
+        this.buffHp += amount;
+    }
+
+    addPermanentDamage(amount) {
+        this.buffDamage += amount;
+    }
+
+    doubleStats() {
+        let newHp = this.permanentHp * 2;
+        let newDamage = this.permanentDamage * 2;
+
+        this.buffHp = newHp - this.cardHp;
+        this.buffDamage = newDamage - this.cardDamage;
+    }
+
+    swapStats() {
+        let oldHp = this.permanentHp;
+        let oldDamage = this.permanentDamage;
+
+        this.buffHp = oldDamage - this.cardHp;
+        this.buffDamage = oldHp - this.cardDamage;
+    }
+
+    // Unitok levelesenek upgradeolasa csak statokban
     upgrade() {
-        if (this.tier < 3) {
-            this.tier++;
-            this.hp = Math.round(this.hp * 1.8);
-            this.damage = Math.round(this.damage * 1.8);
-            console.log(`✨ ${this.name} sikeresen fejlődött ${this.tier}-csillagosra! ✨`);
-        } else {
-            console.log(`${this.name} már maximális (3-as) csillagszinten van!`);
+        if (this.tier >= 3) {
+            return false;
+        }
+
+        this.tier++;
+        this.cardHp = Math.round(this.cardHp * 1.8);
+        this.cardDamage = Math.round(this.cardDamage * 1.8);
+        return true;
+    }
+
+    //  Levelupnal atvesszuk a buffokat
+    absorbUnit(other) {
+        if (other.buffHp > 0) {
+            this.buffHp += other.buffHp;
+        }
+        if (other.buffDamage > 0) {
+            this.buffDamage += other.buffDamage;
         }
     }
 
-    takeDamage(amount) {
-        this.hp -= amount;
-        if (this.hp < 0) this.hp = 0;
+
+   // Shopba klonozas ugyan azokkal az adatokkal
+    clone() {
+        let copy = new Unit(
+            this.id,
+            this.name,
+            this.cost,
+            this.cardHp,
+            this.cardDamage,
+            this.image,
+            [...this.traits]
+        );
+
+        copy.tier = this.tier;
+        copy.buffHp = this.buffHp;
+        copy.buffDamage = this.buffDamage;
+
+        return copy;
     }
 
-    applyTaunt() {
-        if (this.isTaunt) return; // Ha már tauntos, ne alkalmazzuk újra
+    // Copyk tamadnak a csataba eredeti sertetlen maradjon
+    createBattleCopy() {
+        let battleUnit = {
+            uid: this.uid,
+            name: this.name,
+            image: this.image,
+            hp: this.hp,            // aktualis hp amit csokkentunk
+            maxHp: this.hp,         // amivel kezd hp 
+            damage: this.damage,
+            isTaunt: this.isTaunt
+        };
 
-        this.isTaunt = true;
-
-        // Kiszámoljuk a DMG 20%-át és egészre kerekítjük
-        let amount = Math.round(this.damage * 0.20);
-
-        // A HP-t növeljük a kerekített értékkel
-        this.hp += amount;
-
-        // A DMG-t csökkentjük ugyanezzel az értékkel (biztosítva, hogy min. 1 maradjon)
-        this.damage = Math.max(1, this.damage - amount);
-
-        console.log(`🛡️ ${this.name} Tauntot kapott! (+${amount} HP, -${amount} DMG) -> Új HP: ${this.hp}, Új DMG: ${this.damage}`);
+        return battleUnit;
     }
 }

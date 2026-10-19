@@ -1,77 +1,95 @@
+import { Unit } from './Unit.js';
+import { Monster } from './Monster.js';
+
+
+// Spellek tipusai, egyszerubb kitalalni kire castolhato
+const ALLY_TYPES = ["buff_hp", "buff_dmg", "buff_double", "swap"];
+const ENEMY_TYPES = ["deal_damage", "freeze", "nerf_enemy_hp_1", "nerf_enemy_dmg_1"];
+
+
 export class Spell {
-    constructor(id, name, cost, description, type, value = 0) {
+
+    constructor(id, name, cost, description, type, value = 0, image = "") {
+
         this.id = id;
-        this.name = name;              
-        this.cost = cost;              
-        this.description = description; 
-        this.type = type;               // A kártya típusa (címkéje)
-        this.value = value;            // A hatás értéke (pl. sebzés, buff mértéke)
+        this.name = name;
+        this.cost = cost;               
+        this.description = description;
+        this.type = type;               // kire castolhato
+        this.value = value;             // mit csinal
+        this.image = image;             
+
+        if (ALLY_TYPES.includes(type)) {
+            this.target = "ally";
+        } else if (ENEMY_TYPES.includes(type)) {
+            this.target = "enemy";
+        } else {
+            throw new Error("Ismeretlen spell típus: " + type);
+        }
     }
 
-    // Az isEnemy eldönti, hogy saját vagy ellenfél lapot célozz meg
-    use(target, isEnemy = false) {
-        
-        // --- HA AZ ELLENFÉL LAPJÁRA DOBOD ---
-        if (isEnemy) {
-            switch (this.type) {
-                case "deal_damage": // Általános direkt sebzés (pl. Tűzlabda, Villámcsapás)
-                    if (typeof target.takeDamage === 'function') {
-                        target.takeDamage(this.value);
-                    } else {
-                        target.hp -= this.value;
-                        if (target.hp < 0) target.hp = 0;
-                    }
-                    console.log(`🔥 [ELLENFÉL] ${target.name || target.id} kapott ${this.value} sebzést tőle: ${this.name}!`);
-                    break;
 
-                case "freeze":
-                    target.isFrozen = true;
-                    console.log(`❄️ [ELLENFÉL] ${target.name || target.id} meg lett fagyasztva!`);
-                    break;
+    // Target kivalasztasa
+    canTarget(target) {
 
-                case "nerf_enemy_hp_1":
-                    target.hp = 1;
-                    console.log(`📉 [ELLENFÉL] ${target.name || target.id} HP-ja le lett csökkentve 1-re!`);
-                    break;
-
-                case "nerf_enemy_dmg_1":
-                    target.damage = 1;
-                    console.log(`📉 [ELLENFÉL] ${target.name || target.id} DMG-je le lett csökkentve 1-re!`);
-                    break;
-
-                default:
-                    console.log("Ez a varázslat nem használható az ellenfélen!");
-            }
-            return;
+        if (this.target === "ally") {
+            return target instanceof Unit;
         }
 
-        // --- HA A SAJÁT LAPODRA DOBOD ---
+        if (this.target === "enemy") {
+            if (!(target instanceof Monster)) {
+                return false;
+            }
+            if (!target.isAlive()) {
+                return false;
+            }
+            return target.canBeTargeted();
+        }
+
+        return false;
+    }
+
+    // Spell hasznalat sikerul-e
+    use(target) {
+
+        if (!this.canTarget(target)) {
+            return false;
+        }
+
         switch (this.type) {
+
+            // Unitokra tartos spellek jatek vegeig
+
             case "buff_hp":
-                target.hp += this.value;
-                console.log(`💚 ${target.name} kapott +${this.value} HP-t!`);
-                break;
+                target.addPermanentHp(this.value);
+                return true;
 
             case "buff_dmg":
-                target.damage += this.value;
-                console.log(`⚔️ ${target.name} kapott +${this.value} sebzést!`);
-                break;
+                target.addPermanentDamage(this.value);
+                return true;
 
             case "buff_double":
-                target.hp *= 2;
-                target.damage *= 2;
-                console.log(`✨ ${target.name} HP-ja és DMG-je megduplázódott!`);
-                break;
+                target.doubleStats();
+                return true;
 
             case "swap":
-                let temp = target.damage;
-                target.damage = target.hp;
-                target.hp = temp;
-                console.log(`🔄 ${target.name} felcserélte a HP-ját és DMG-jét!`);
-                break;
+                target.swapStats();
+                return true;
 
-            default:
-                console.log("Ismeretlen saját varázslat típus!");
+            // Monsterre csak 1 korre hat
+            case "deal_damage":
+                return target.takeDamage(this.value);
+
+            case "freeze":
+                return target.freeze();
+
+            case "nerf_enemy_hp_1":
+                return target.setHpToOne();
+
+            case "nerf_enemy_dmg_1":
+                return target.setDamageToOne();
         }
+
+        return false;
     }
 }

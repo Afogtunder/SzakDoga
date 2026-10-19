@@ -16,8 +16,9 @@
             <span id="lives" class="value">❤️❤️❤️</span>
         </div>
         <div class="stat-box">
-            <span class="label">Fázis</span>
-            <span id="round-info" class="value">Round 1 / 15</span>
+            <span class="label">Kör</span>
+            <span id="round-info" class="value">1 / 15</span>
+            <span id="phase-info" class="sub-value">Felkészülés</span>
         </div>
         <div class="stat-box">
             <span class="label">Arany</span>
@@ -25,69 +26,172 @@
         </div>
         <div class="stat-box">
             <span class="label">Szint</span>
-            <span id="player-level" class="value">Lvl 1</span> 
+            <span id="player-level" class="value">Lvl 1</span>
             <span id="xp-display" class="sub-value">(0/2 XP)</span>
         </div>
         <div class="stat-box">
-            <span class="label">Idő</span>
-            <span id="timer" class="value">0s</span>
+            <span class="label">Pontszám</span>
+            <span id="score" class="value">0</span>
         </div>
     </header>
 
     <!-- FŐ PÁLYA -->
     <main id="game-view">
+
+        <!-- BAL OLDAL: SZINERGIÁK (TRAITEK) -->
+        <aside id="trait-panel">
+            <div class="panel-title">Szinergiák</div>
+            <div class="trait-row active" data-trait="tank" tabindex="0">
+                <div class="trait-icon">🛡️</div>
+                <div class="trait-info">
+                    <div class="trait-top">
+                        <span class="trait-name">Tank</span>
+                        <span class="trait-count">3/3</span>
+                    </div>
+                    <div class="trait-pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i></div>
+                </div>
+                <div class="trait-desc">A harctéren lévő összes lapod +25% HP-t kap.</div>
+            </div>
+            <div class="trait-row" data-trait="warrior" tabindex="0">
+                <div class="trait-icon">🗡️</div>
+                <div class="trait-info">
+                    <div class="trait-top">
+                        <span class="trait-name">Harcos</span>
+                        <span class="trait-count">1/3</span>
+                    </div>
+                    <div class="trait-pips"><i class="pip on"></i><i class="pip"></i><i class="pip"></i></div>
+                </div>
+                <div class="trait-desc">A harctéren lévő összes lapod +25% sebzést kap.</div>
+            </div>
+            <div class="trait-row" data-trait="treasure" tabindex="0">
+                <div class="trait-icon">💰</div>
+                <div class="trait-info">
+                    <div class="trait-top">
+                        <span class="trait-name">Kincsvadász</span>
+                        <span class="trait-count">1/3</span>
+                    </div>
+                    <div class="trait-pips"><i class="pip on"></i><i class="pip"></i><i class="pip"></i></div>
+                </div>
+                <div class="trait-desc">Minden kör végén +2 arany.</div>
+            </div>
+            <div class="trait-row" data-trait="sage" tabindex="0">
+                <div class="trait-icon">📖</div>
+                <div class="trait-info">
+                    <div class="trait-top">
+                        <span class="trait-name">Bölcs</span>
+                        <span class="trait-count">1/3</span>
+                    </div>
+                    <div class="trait-pips"><i class="pip on"></i><i class="pip"></i><i class="pip"></i></div>
+                </div>
+                <div class="trait-desc">Minden kör végén +2 XP.</div>
+            </div>
+            <div class="trait-row" data-trait="lucky" tabindex="0">
+                <div class="trait-icon">🍀</div>
+                <div class="trait-info">
+                    <div class="trait-top">
+                        <span class="trait-name">Szerencsés</span>
+                        <span class="trait-count">0/3</span>
+                    </div>
+                    <div class="trait-pips"><i class="pip"></i><i class="pip"></i><i class="pip"></i></div>
+                </div>
+                <div class="trait-desc">Minden kör elején +1 ingyen újrapörgetés.</div>
+            </div>
+        </aside>
+
+        <!-- JOBB OLDAL: KIVÁLASZTOTT EGYSÉG, CSATA, ELADÁS -->
+        <aside id="side-panel">
+            <div id="unit-info">
+                <div class="info-header">
+                    <img class="info-thumb" src="images/monster2/tank.png" alt="Vasfalú">
+                    <div class="info-title">
+                        <div class="info-name">Vasfalú</div>
+                        <div class="info-sub">2 cost · Tank · ★</div>
+                    </div>
+                </div>
+                <div class="info-stats">
+                    <div class="info-stat-row"><span>HP</span><b>24</b><small>18 alap +5 trait +1 taunt</small></div>
+                    <div class="info-stat-row"><span>Sebzés</span><b>1</b><small>2 alap −1 taunt</small></div>
+                </div>
+                <button id="btn-toggle-taunt" class="taunt-btn active">Taunt kikapcsolása</button>
+            </div>
+
+            <button id="btn-start-battle" class="battle-btn">⚔️ Csata indítása</button>
+
+            <div id="sell-zone">
+                <span class="sell-title">💰 Eladás</span>
+                <span class="sell-hint">Húzd ide a lapot (ár: cost × csillag)</span>
+            </div>
+        </aside>
+
         <div id="board" class="grid-2x6">
             <div class="board-row enemy-row">
                 <div class="cell" data-row="0" data-col="0"></div>
                 <div class="cell" data-row="0" data-col="1"></div>
-                <div class="cell" data-row="0" data-col="2"></div>
-                <div class="cell" data-row="0" data-col="3"></div>
+                <div class="cell" data-row="0" data-col="2">
+                    <div class="character-wrapper enemy-unit" data-enemy="goblin">
+                        <img src="images/enemy/monster4.PNG" class="character attack-mode" alt="goblin">
+                        <div class="unit-dmg-badge">⚔️ 4</div>
+                        <div class="unit-hp-bar"><span class="unit-hp-text">12</span></div>
+                    </div>
+                </div>
+                <div class="cell" data-row="0" data-col="3">
+                    <div class="character-wrapper enemy-unit" data-enemy="orc">
+                        <img src="images/enemy/boss.PNG" class="character attack-mode" alt="orc">
+                        <div class="unit-dmg-badge">⚔️ 4</div>
+                        <div class="unit-hp-bar"><span class="unit-hp-text">16</span></div>
+                    </div>
+                </div>
                 <div class="cell" data-row="0" data-col="4"></div>
                 <div class="cell" data-row="0" data-col="5"></div>
             </div>
             <div class="board-row player-row">
                 <div class="cell" data-row="1" data-col="0">
-                    <div class="character-wrapper">
-                        <img src="images/monster1/1cost-five.png" class="character attack-mode" alt="Yordle">
-                        <div class="unit-dmg-badge">⚔️ 1</div>
-                        <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
-                    </div>
+                        <div class="character-wrapper" data-cost="1" data-trait="tank" data-unit-id="tank_1">
+                            <img src="images/monster1/1cost-one.png" class="character attack-mode" draggable="true" alt="Pajzsos Őr">
+                            <div class="unit-stars" title="1 csillag">★</div>
+                            <div class="unit-trait-badge" title="Tank">🛡️</div>
+                            <div class="unit-dmg-badge">⚔️ 1</div>
+                            <div class="unit-hp-bar"><span class="unit-hp-text">13</span></div>
+                        </div>
                 </div>
-                <div class="cell" data-row="1" data-col="1">
-                    <div class="character-wrapper">
-                        <img src="2cost-two.PNG" class="character attack-mode" alt="Yordle">
-                        <div class="unit-dmg-badge">⚔️ 1</div>
-                        <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
-                    </div>
+                <div class="cell taunt" data-row="1" data-col="1">
+                        <div class="character-wrapper" data-cost="2" data-trait="tank" data-unit-id="tank_2">
+                            <img src="images/monster1/1cost-six.png" class="character" draggable="true" alt="Vasfalú">
+                            <div class="unit-stars" title="1 csillag">★</div>
+                            <div class="unit-trait-badge" title="Tank">🛡️</div>
+                        <div class="unit-taunt-marker" title="Taunt aktív">Taunt</div>
+                            <div class="unit-dmg-badge">⚔️ 1</div>
+                            <div class="unit-hp-bar"><span class="unit-hp-text">24</span></div>
+                        </div>
                 </div>
                 <div class="cell" data-row="1" data-col="2">
-                    <div class="character-wrapper">
-                        <img src="2cost-zero.png" class="character attack-mode" alt="Yordle">
-                        <div class="unit-dmg-badge">⚔️ 1</div>
-                        <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
-                    </div>
+                        <div class="character-wrapper" data-cost="3" data-trait="tank" data-unit-id="tank_3">
+                            <img src="images/monster1/1cost-three.png" class="character attack-mode" draggable="true" alt="Kőbástya">
+                            <div class="unit-stars" title="1 csillag">★</div>
+                            <div class="unit-trait-badge" title="Tank">🛡️</div>
+                            <div class="unit-dmg-badge">⚔️ 4</div>
+                            <div class="unit-hp-bar"><span class="unit-hp-text">36</span></div>
+                        </div>
                 </div>
                 <div class="cell" data-row="1" data-col="3">
-                    <div class="character-wrapper">
-                        <img src="3cost-zero.png" class="character attack-mode" alt="Yordle">
-                        <div class="unit-dmg-badge">⚔️ 1</div>
-                        <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
-                    </div>
+                        <div class="character-wrapper" data-cost="1" data-trait="warrior" data-unit-id="warrior_1">
+                            <img src="images/monster5/5cost-one.PNG" class="character attack-mode" draggable="true" alt="Újonc Harcos">
+                            <div class="unit-stars" title="1 csillag">★</div>
+                            <div class="unit-trait-badge" title="Harcos">🗡️</div>
+                            <div class="unit-dmg-badge">⚔️ 3</div>
+                            <div class="unit-hp-bar"><span class="unit-hp-text">8</span></div>
+                        </div>
                 </div>
                 <div class="cell" data-row="1" data-col="4">
-                    <div class="character-wrapper">
-                        <img src="4cost-zero.png" class="character attack-mode" alt="Yordle">
-                        <div class="unit-dmg-badge">⚔️ 1</div>
-                        <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
-                    </div>
+                        <div class="character-wrapper" data-cost="3" data-trait="sage" data-unit-id="sage_3">
+                            <img src="images/monster3/3cost-four.PNG" class="character attack-mode" draggable="true" alt="Bölcs Mágus">
+                            <div class="unit-stars" title="1 csillag">★</div>
+                            <div class="unit-trait-badge" title="Bölcs">📖</div>
+                            <div class="unit-dmg-badge">⚔️ 5</div>
+                            <div class="unit-hp-bar"><span class="unit-hp-text">25</span></div>
+                        </div>
                 </div>
-                <div class="cell" data-row="1" data-col="5">
-                    <div class="character-wrapper">
-                        <img src="5cost-zero.png" class="character attack-mode" alt="Yordle">
-                        <div class="unit-dmg-badge">⚔️ 1</div>
-                        <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
-                    </div>
-                </div>
+                <div class="cell" data-row="1" data-col="5"></div>
             </div>
         </div>
     </main>
@@ -100,25 +204,52 @@
         </div>
 
         <div id="hud-drawer">
-            <!-- BAL OLDAL: Újra pörgetés gomb + 2x5 Kispad -->
+            <!-- BAL OLDAL: Újra pörgetés + Fagyasztás gombok + 2x5 Kispad -->
             <div class="hud-side left-side">
-                <div class="action-container">
-                    <button id="btn-reroll" class="circle-btn brown-btn">🔄</button>
-                    <span class="btn-text">Újra pörgetés<br><b>(2 💰)</b></span>
+                <div class="action-column">
+                    <div class="action-container compact">
+                        <div class="btn-wrap">
+                            <button id="btn-reroll" class="circle-btn brown-btn">🔄</button>
+                            <span id="free-reroll-badge" class="free-badge" title="Ingyen újrapörgetés (Szerencsés)">🍀 1</span>
+                        </div>
+                        <span class="btn-text">Újra pörgetés<br><b id="reroll-price">(2 💰)</b></span>
+                    </div>
+                    <div class="action-container compact">
+                        <button id="btn-freeze" class="circle-btn ice-btn">❄️</button>
+                        <span class="btn-text">Fagyasztás<br><b id="freeze-state">(ki)</b></span>
+                    </div>
                 </div>
 
                 <div id="bench-area">
                     <div class="hud-label">Kispad</div>
                     <div id="bench" class="grid-2x5">
                         <div class="bench-slot" data-slot="0">
-                            <div class="character-wrapper">
-                                <img src="1cost-zero.png" class="character attack-mode" draggable="true" alt="Yordle">
-                                <div class="unit-dmg-badge">⚔️ 1</div>
-                                <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
+                            <div class="character-wrapper" data-cost="5" data-trait="warrior" data-unit-id="warrior_5">
+                                <img src="images/monster1/1cost-five.png" class="character attack-mode" draggable="true" alt="Csatakirály">
+                                <div class="unit-stars" title="1 csillag">★</div>
+                                <div class="unit-trait-badge" title="Harcos">🗡️</div>
+                                <div class="unit-dmg-badge">⚔️ 13</div>
+                                <div class="unit-hp-bar"><span class="unit-hp-text">36</span></div>
                             </div>
                         </div>
-                        <div class="bench-slot" data-slot="1"></div>
-                        <div class="bench-slot" data-slot="2"></div>
+                        <div class="bench-slot" data-slot="1">
+                            <div class="character-wrapper" data-cost="2" data-trait="lucky" data-unit-id="lucky_2">
+                                <img src="images/monster1/1cost-five.png" class="character attack-mode" draggable="true" alt="Kockavető">
+                                <div class="unit-stars" title="2 csillag">★★</div>
+                                <div class="unit-trait-badge" title="Szerencsés">🍀</div>
+                                <div class="unit-dmg-badge">⚔️ 5</div>
+                                <div class="unit-hp-bar"><span class="unit-hp-text">23</span></div>
+                            </div>
+                        </div>
+                        <div class="bench-slot" data-slot="2">
+                            <div class="character-wrapper" data-cost="1" data-trait="treasure" data-unit-id="treasure_1">
+                                <img src="images/monster1/1cost-five.png" class="character attack-mode" draggable="true" alt="Zsebmetsző">
+                                <div class="unit-stars" title="1 csillag">★</div>
+                                <div class="unit-trait-badge" title="Kincsvadász">💰</div>
+                                <div class="unit-dmg-badge">⚔️ 2</div>
+                                <div class="unit-hp-bar"><span class="unit-hp-text">7</span></div>
+                            </div>
+                        </div>
                         <div class="bench-slot" data-slot="3"></div>
                         <div class="bench-slot" data-slot="4"></div>
                         <div class="bench-slot" data-slot="5"></div>
@@ -130,25 +261,73 @@
                 </div>
             </div>
 
-            <!-- JOBB OLDAL: 6 Hatalmas Bolt Kártya + XP vásárlás gomb -->
+            <!-- JOBB OLDAL: 6 Bolt Kártya + XP vásárlás gomb -->
             <div class="hud-side right-side">
                 <div id="shop-area">
                     <div class="hud-label">Bolt (6 Slot)</div>
                     <div id="shop-cards">
                         <div class="shop-slot" data-shop-id="0">
                             <div class="shop-card-content">
-                                <div class="character-wrapper">
-                                    <img src="1cost-zero.png" class="character attack-mode" alt="Yordle">
-                                    <div class="unit-dmg-badge">⚔️ 1</div>
-                                    <div class="unit-hp-bar"><span class="unit-hp-text">10</span></div>
+                                <div class="character-wrapper" data-cost="1" data-trait="lucky" data-unit-id="lucky_1">
+                                    <img src="images/monster2/2cost-four.PNG" class="character attack-mode" draggable="true" alt="Szerencsés Csavargó">
+                                    <div class="unit-stars" title="1 csillag">★</div>
+                                    <div class="unit-trait-badge" title="Szerencsés">🍀</div>
+                                    <div class="unit-dmg-badge">⚔️ 2</div>
+                                    <div class="unit-hp-bar"><span class="unit-hp-text">7</span></div>
                                 </div>
+                                <span class="shop-card-name">Szerencsés Csavargó</span>
                                 <span class="shop-card-price">1 💰</span>
                             </div>
                         </div>
-                        <div class="shop-slot" data-shop-id="1"></div>
-                        <div class="shop-slot" data-shop-id="2"></div>
-                        <div class="shop-slot" data-shop-id="3"></div>
-                        <div class="shop-slot" data-shop-id="4"></div>
+                        <div class="shop-slot" data-shop-id="1">
+                            <div class="shop-card-content">
+                                <div class="character-wrapper" data-cost="2" data-trait="treasure" data-unit-id="treasure_2">
+                                    <img src="images/monster2/2cost-one.PNG" class="character attack-mode" draggable="true" alt="Kalandor">
+                                    <div class="unit-stars" title="1 csillag">★</div>
+                                    <div class="unit-trait-badge" title="Kincsvadász">💰</div>
+                                    <div class="unit-dmg-badge">⚔️ 3</div>
+                                    <div class="unit-hp-bar"><span class="unit-hp-text">13</span></div>
+                                </div>
+                                <span class="shop-card-name">Kalandor</span>
+                                <span class="shop-card-price">2 💰</span>
+                            </div>
+                        </div>
+                        <div class="shop-slot" data-shop-id="2">
+                            <div class="shop-card-content">
+                                <div class="character-wrapper" data-cost="3" data-trait="warrior" data-unit-id="warrior_3">
+                                    <img src="images/monster3/3cost-three.PNG" class="character attack-mode" draggable="true" alt="Vérszomjas">
+                                    <div class="unit-stars" title="1 csillag">★</div>
+                                    <div class="unit-trait-badge" title="Harcos">🗡️</div>
+                                    <div class="unit-dmg-badge">⚔️ 7</div>
+                                    <div class="unit-hp-bar"><span class="unit-hp-text">18</span></div>
+                                </div>
+                                <span class="shop-card-name">Vérszomjas</span>
+                                <span class="shop-card-price">3 💰</span>
+                            </div>
+                        </div>
+                        <div class="shop-slot" data-shop-id="3">
+                            <div class="shop-card-content">
+                                <div class="character-wrapper" data-cost="4" data-trait="tank" data-unit-id="tank_4">
+                                    <img src="images/monster4/4cost-eight.PNG" class="character attack-mode" draggable="true" alt="Hegyi Titán">
+                                    <div class="unit-stars" title="1 csillag">★</div>
+                                    <div class="unit-trait-badge" title="Tank">🛡️</div>
+                                    <div class="unit-dmg-badge">⚔️ 5</div>
+                                    <div class="unit-hp-bar"><span class="unit-hp-text">42</span></div>
+                                </div>
+                                <span class="shop-card-name">Hegyi Titán</span>
+                                <span class="shop-card-price">4 💰</span>
+                            </div>
+                        </div>
+                        <div class="shop-slot" data-shop-id="4">
+                            <div class="shop-card-content">
+                                <div class="character-wrapper spell-card" data-cost="3" data-spell-id="dmg_3">
+                                    <img src="images/monster5/5cost-four.PNG" class="character" draggable="true" alt="Villámcsapás">
+                                    <div class="spell-effect">6 sebzés</div>
+                                </div>
+                                <span class="shop-card-name">Villámcsapás</span>
+                                <span class="shop-card-price">3 💰</span>
+                            </div>
+                        </div>
                         <div class="shop-slot" data-shop-id="5"></div>
                     </div>
                 </div>
@@ -164,14 +343,42 @@
         <div id="spell-drawer" class="spell-drawer">
             <div class="hud-label">Varázslat Inventory (Spells)</div>
             <div id="spell-inventory-container" class="spell-grid">
-                <div class="spell-slot" data-spell-id="0"></div>
-                <div class="spell-slot" data-spell-id="1"></div>
+                <div class="spell-slot" data-spell-id="0">
+                    <div class="spell-inv-card" data-spell="dmg_1">
+                        <img src="images/spells/dmg_1.png" alt="Szikra">
+                        <span class="spell-inv-name">Szikra</span>
+                        <span class="spell-cost-badge">1 💰</span>
+                    </div>
+                </div>
+                <div class="spell-slot" data-spell-id="1">
+                    <div class="spell-inv-card" data-spell="hp_1">
+                        <img src="images/spells/hp_1.png" alt="Gyógyital">
+                        <span class="spell-inv-name">Gyógyital</span>
+                        <span class="spell-cost-badge">1 💰</span>
+                    </div>
+                </div>
                 <div class="spell-slot" data-spell-id="2"></div>
                 <div class="spell-slot" data-spell-id="3"></div>
+                <div class="spell-slot" data-spell-id="4"></div>
+                <div class="spell-slot" data-spell-id="5"></div>
             </div>
         </div>
     </footer>
 
-    <script src="game.js"></script>
+    <!-- A játékmotor (main.js) ES modulokat használ, ezek csak helyi szerverről töltődnek be.
+         Ha az oldalt fájlként nyitod meg, ez a figyelmeztetés jelenik meg. -->
+    <script>
+        if (location.protocol === "file:") {
+            document.addEventListener("DOMContentLoaded", function () {
+                var bar = document.createElement("div");
+                bar.className = "server-warning";
+                bar.textContent = "⚠️ A játékmotor helyi szervert igényel. VS Code-ban: jobb klikk az index.html-re → Open with Live Server.";
+                document.body.insertBefore(bar, document.body.firstChild);
+            });
+        }
+    </script>
+
+    <!-- A játékmotor és a felület: lenyitók, zene, vásárlás, húzás (ES modul) -->
+    <script type="module" src="main.js"></script>
 </body>
 </html>

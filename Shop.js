@@ -1,110 +1,231 @@
+import { Unit } from './Unit.js';
+import { Spell } from './Spell.js';
+
+const SHOP_SIZE = 6;            
+export const REROLL_COST = 2;          
+const SPELL_CHANCE = 0.25;      
+
+// Unitok per cost
+const HERO_COPIES = { 1: 21, 2: 18, 3: 15, 4: 12, 5: 9 };
+
+// Spellek per cost
+const SPELL_COPIES = { 1: 5, 2: 4, 3: 3, 4: 2, 5: 2 };
+
+// Drop chance
+const DROP_RATES = {
+    1: { 1: 1.00, 2: 0.00, 3: 0.00, 4: 0.00, 5: 0.00 },
+    2: { 1: 0.75, 2: 0.25, 3: 0.00, 4: 0.00, 5: 0.00 },
+    3: { 1: 0.55, 2: 0.30, 3: 0.15, 4: 0.00, 5: 0.00 },
+    4: { 1: 0.40, 2: 0.35, 3: 0.20, 4: 0.05, 5: 0.00 },
+    5: { 1: 0.25, 2: 0.35, 3: 0.30, 4: 0.10, 5: 0.00 },
+    6: { 1: 0.20, 2: 0.30, 3: 0.35, 4: 0.15, 5: 0.03 },
+    7: { 1: 0.15, 2: 0.25, 3: 0.35, 4: 0.20, 5: 0.05 },
+    8: { 1: 0.10, 2: 0.20, 3: 0.35, 4: 0.25, 5: 0.10 },
+    9: { 1: 0.05, 2: 0.15, 3: 0.30, 4: 0.30, 5: 0.20 }
+};
+
+
 export class Shop {
+
     constructor(allHeroes, allSpells) {
-        this.allHeroes = allHeroes;
-        this.allSpells = allSpells;
-        
-        this.slots = [null, null, null, null, null, null]; 
-        this.isFrozen = false; 
+        this.allHeroes = allHeroes;     
+        this.allSpells = allSpells;   
+
+        this.slots = new Array(SHOP_SIZE).fill(null);
+        this.isFrozen = false;
 
         this.heroPoolArray = [];
         this.spellPoolArray = [];
-        
+
         this.initializeHeroPool();
         this.initializeSpellPool();
-
-        this.dropRates = {
-            1: { 1: 1.00, 2: 0.00, 3: 0.00, 4: 0.00, 5: 0.00 },
-            2: { 1: 0.75, 2: 0.25, 3: 0.00, 4: 0.00, 5: 0.00 },
-            3: { 1: 0.55, 2: 0.30, 3: 0.15, 4: 0.00, 5: 0.00 },
-            4: { 1: 0.40, 2: 0.35, 3: 0.20, 4: 0.05, 5: 0.00 },
-            5: { 1: 0.25, 2: 0.35, 3: 0.30, 4: 0.10, 5: 0.00 },
-            6: { 1: 0.20, 2: 0.30, 3: 0.35, 4: 0.15, 5: 0.03 },
-            7: { 1: 0.15, 2: 0.25, 3: 0.35, 4: 0.20, 5: 0.05 },
-            8: { 1: 0.10, 2: 0.20, 3: 0.35, 4: 0.25, 5: 0.10 },
-            9: { 1: 0.05, 2: 0.15, 3: 0.30, 4: 0.30, 5: 0.20 }
-        };
     }
 
+    //Shop feltoltese Unit es Spell
     initializeHeroPool() {
-        for (let i = 0; i < this.allHeroes.length; i++) {
-            let hero = this.allHeroes[i];
-            let count = (hero.cost === 1) ? 21 : (hero.cost === 2) ? 18 : (hero.cost === 3) ? 15 : (hero.cost === 4) ? 12 : 9;
-            
-            for (let c = 0; c < count; c++) { 
-                this.heroPoolArray.push(hero); 
+        for (let hero of this.allHeroes) {
+            let copies = HERO_COPIES[hero.cost];
+
+            for (let i = 0; i < copies; i++) {
+                this.heroPoolArray.push(hero);
             }
         }
-        console.log(`Hős zsák feltöltve! Összesen: ${this.heroPoolArray.length} db`);
     }
 
     initializeSpellPool() {
-        for (let i = 0; i < this.allSpells.length; i++) {
-            let spell = this.allSpells[i];
-            let count = (spell.cost === 1) ? 5 : (spell.cost === 2) ? 4 : (spell.cost === 3) ? 3 : (spell.cost === 4) ? 2 : 2;
-            
-            for (let c = 0; c < count; c++) { 
-                this.spellPoolArray.push(spell); 
+        for (let spell of this.allSpells) {
+            let copies = SPELL_COPIES[spell.cost];
+
+            for (let i = 0; i < copies; i++) {
+                this.spellPoolArray.push(spell);
             }
         }
-        console.log(`Spell zsák feltöltve! Összesen: ${this.spellPoolArray.length} db`);
     }
 
-    refreshShop(player) {
-        // Ha fagyasztva van, nem frissül a bolt
+    // Uj kor shop frissitese minden korben
+    startNewRound(player) {
+
         if (this.isFrozen) {
-            console.log("❄️ A bolt fagyasztva van, nem frissült ebben a körben!");
-            return;
+            this.isFrozen = false;
+        } else {
+            this.returnSlotsToPool();
         }
-
-        for (let i = 0; i < this.slots.length; i++) {
-            this.slots[i] = this.generateShopItem(player.level);
-        }
-        console.log("🔄 A 6 slotos bolt sikeresen frissült!");
+        this.fillEmptySlots(player);
     }
 
+    // Shop ures reszeit feltolteni
+    fillEmptySlots(player) {
+        for (let i = 0; i < this.slots.length; i++) {
+            if (this.slots[i] === null) {
+                this.slots[i] = this.generateShopItem(player.level);
+            }
+        }
+    }
+
+    // Reroll nezzuk meg h van e freerollunk elotte
+    rerollShop(player, rerollCost = REROLL_COST) {
+
+        if (!player.useFreeReroll()) {
+            if (!player.spendGold(rerollCost)) {
+                return false;
+            }
+        }
+        // mostani shop kuka uj shop be
+        this.returnSlotsToPool();
+        this.fillEmptySlots(player);
+        return true;
+    }
+
+    toggleFreeze() {
+        this.isFrozen = !this.isFrozen;
+        return this.isFrozen;
+    }
+
+
+    // Teljes shop resz mukodtetese
+    buyItem(slotIndex, player, zoneName = null, index = null) {
+
+        if (slotIndex < 0 || slotIndex >= this.slots.length) {
+            return false;
+        }
+        let item = this.slots[slotIndex];
+        if (item === null) {
+            return false;
+        }
+
+        if (!player.canAfford(item.cost)) {
+            return false;
+        }
+
+        if (item instanceof Unit) {
+            
+            let destination = this.findHeroDestination(player, zoneName, index);
+
+            if (destination === null) {
+                return false;
+            }
+            player.spendGold(item.cost);
+            destination.zone[destination.index] = item;
+        } else {
+            if (!player.hasSpellSpace()) {
+                return false;
+            }
+            player.spendGold(item.cost);
+            player.addSpell(item);
+        }
+
+        this.slots[slotIndex] = null;
+        return true;
+    }
+
+    // Unitok lokaciojanak hely megadasa hova kerulhet
+    findHeroDestination(player, zoneName, index) {
+
+        let zone = player.getZone(zoneName);
+
+        if (zone && index !== null && index >= 0 && index < zone.length && zone[index] === null) {
+            return { zone: zone, index: index };
+        }
+
+        let benchSlot = player.findEmptySlot(player.bench);
+
+        if (benchSlot !== -1) {
+            return { zone: player.bench, index: benchSlot };
+        }
+
+        return null;
+    }
+
+    // Sell unitonkent
+    getSellValue(unit) {
+        return unit.cost * unit.tier;
+    }
+
+    // Egysegek sellelese
+    sellUnit(player, zoneName, index) {
+        let unit = player.removeUnit(zoneName, index);
+
+        if (unit === null) {
+            return false;
+        }
+
+        player.addGold(this.getSellValue(unit));
+
+        
+        let copies = Math.pow(3, unit.tier - 1);
+        this.returnHeroToPool(unit, copies);
+        return true;
+    }
+
+    // Szinten valo shop generalas, van e meg lap
     generateShopItem(playerLevel) {
-        let itemType = this.decideItemType(); 
-        let tier = this.rollTier(playerLevel); 
+        let tier = this.rollTier(playerLevel);
         let item = null;
 
-        if (itemType === 'hero') {
+        if (this.decideItemType() === "hero") {
             item = this.drawFromPool(this.heroPoolArray, tier);
-            if (!item) {
+
+            if (item === null) {
                 item = this.drawFromPool(this.spellPoolArray, tier);
             }
         } else {
             item = this.drawFromPool(this.spellPoolArray, tier);
-            if (!item) {
+
+            if (item === null) {
                 item = this.drawFromPool(this.heroPoolArray, tier);
             }
         }
 
-        return item; 
+        return item;
     }
 
+    // unit v Spell
     decideItemType() {
-        let randomNumber = Math.random();
-        if (randomNumber < 0.25) {
-            return 'spell';
+        if (Math.random() < SPELL_CHANCE) {
+            return "spell";
         }
-        return 'hero';
+        return "hero";
     }
 
+    // Melyik costbol kap a jatekos szintol fuggoen
     rollTier(playerLevel) {
-        let rates = this.dropRates[playerLevel] || this.dropRates[1];
+        let rates = DROP_RATES[playerLevel] || DROP_RATES[1];
         let randomNumber = Math.random();
         let cumulative = 0;
 
         for (let tier in rates) {
             cumulative += rates[tier];
-            if (randomNumber <= cumulative) {
+
+            if (randomNumber < cumulative) {
                 return parseInt(tier);
             }
         }
-        return 1; 
+        return 1;
     }
 
+    // Kartyak huzasa a megfelelo costbol
     drawFromPool(poolArray, tier) {
+
         let matchingIndices = [];
 
         for (let i = 0; i < poolArray.length; i++) {
@@ -117,101 +238,45 @@ export class Shop {
             return null;
         }
 
-        let randomIndex = Math.floor(Math.random() * matchingIndices.length);
-        let bagIndex = matchingIndices[randomIndex];
+        let randomPick = Math.floor(Math.random() * matchingIndices.length);
+        let poolIndex = matchingIndices[randomPick];
 
-        let removedItem = poolArray.splice(bagIndex, 1)[0];
-        let itemCopy = Object.assign(Object.create(Object.getPrototypeOf(removedItem)), removedItem);
-        return itemCopy;
+        let template = poolArray.splice(poolIndex, 1)[0];
+
+        if (template instanceof Unit) {
+            return template.clone();
+        }
+        return template;
     }
 
-    buyItem(slotIndex, player) {
-        let item = this.slots[slotIndex];
-        if (!item) {
-            console.log("❌ Ez a slot üres!");
-            return false;
-        }
-
-        if (player.gold < item.cost) {
-            console.log("❌ Nincs elég aranyad ehhez a vásárláshoz!");
-            return false;
-        }
-
-        let isHero = item.hp !== undefined; 
-
-        if (isHero) {
-            if (player.bench.length >= 10) {
-                console.log("❌ A kispad tele van! (Max 10 hely)");
-                return false;
-            }
-
-            player.spendGold(item.cost);
-            player.addUnitToBench(item);
-
-        } else {
-            player.spendGold(item.cost);
-            player.addItemToInventory(item);
-        }
-
-        this.slots[slotIndex] = null;
-
-        console.log(`✅ Sikeres vásárlás! Megvetted: ${item.name}`);
-        return true;
-    }
-
-    // Az eladás teljes kezelése (Kiszedi a padról, ad pénzt, visszadobja a zsákba)
-    sellUnit(player, benchIndex) {
-        let unitToSell = player.bench[benchIndex];
-        if (!unitToSell) {
-            console.log("❌ Nincs hős ezen a kispad sloton!");
-            return false;
-        }
-
-        let refundGold = unitToSell.cost * (unitToSell.tier || 1); 
-        player.addGold(refundGold);
-
-        player.bench.splice(benchIndex, 1);
-
-        this.heroPoolArray.push(unitToSell);
-
-        console.log(`💰 Sikeres eladás: Eladtad őt: ${unitToSell.name}, visszakaptál ${refundGold} aranyat.`);
-        return true;
-    }
-
-    rerollShop(player, rerollCost = 2) {
-        if (player.gold < rerollCost) {
-            console.log("❌ Nincs elég aranyad az újrapörgetéshez!");
-            return false;
-        }
-
+    // Bagbe visszakuldjuk a dolgokat
+    returnSlotsToPool() {
         for (let i = 0; i < this.slots.length; i++) {
             let item = this.slots[i];
-            if (item !== null) {
-                let isHero = item.hp !== undefined;
-                if (isHero) {
-                    this.heroPoolArray.push(item);
-                } else {
-                    this.spellPoolArray.push(item);
-                }
-                this.slots[i] = null;
+
+            if (item === null) {
+                continue;
             }
+
+            if (item instanceof Unit) {
+                this.returnHeroToPool(item, 1);
+            } else {
+                this.spellPoolArray.push(item);
+            }
+            this.slots[i] = null;
         }
-
-        player.spendGold(rerollCost);
-
-        // A reroll független a fagyasztástól (kifejezett szándék az újrasorsolás)
-        let tempFreeze = this.isFrozen;
-        this.isFrozen = false;
-        this.refreshShop(player);
-        this.isFrozen = tempFreeze;
-
-        console.log("🎲 A bolt újra lett pörgetve!");
-        return true;
     }
 
-    toggleFreeze() {
-        this.isFrozen = !this.isFrozen;
-        console.log(`❄️ Bolt fagyasztva: ${this.isFrozen ? "BEKAPCSOLVA" : "KIKAPCSOLVA"}`);
-        return this.isFrozen;
+    // Sablonok visszakerulese
+    returnHeroToPool(unit, copies) {
+        let template = this.allHeroes.find(hero => hero.id === unit.id);
+
+        if (!template) {
+            return;
+        }
+
+        for (let i = 0; i < copies; i++) {
+            this.heroPoolArray.push(template);
+        }
     }
 }
